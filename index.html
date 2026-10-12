@@ -1,11 +1,67 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#eef8ff">
+  <title>そらいろアドベンチャー</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="game.js" defer></script>
 </head>
 <body>
-    ようこそ私のページへ
+  <main class="game-shell">
+    <header class="topbar">
+      <a class="wordmark" href="#" aria-label="そらいろアドベンチャー ホーム">
+        <span class="wordmark-icon" aria-hidden="true">✦</span>
+        <span>そらいろ<span class="wordmark-accent">アドベンチャー</span></span>
+      </a>
+      <button class="restart-button" id="restart-button" type="button">
+        <span aria-hidden="true">↻</span> はじめから
+      </button>
+    </header>
+
+    <section class="game-card" aria-label="ゲーム画面">
+      <div class="game-heading">
+        <div>
+          <p class="eyebrow">WORLD 01 <span>·</span> はじまりの草原</p>
+          <h1>コインを集めて、ゴールをめざそう！</h1>
+        </div>
+        <div class="score-box" aria-live="polite">
+          <span class="coin-icon" aria-hidden="true">●</span>
+          <span id="coin-count">0</span><span class="score-divider">/</span><span id="coin-total">0</span>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="game" width="960" height="540" aria-label="横スクロールアクションゲーム">
+          このゲームを遊ぶには、Canvasに対応したブラウザーが必要です。
+        </canvas>
+        <div class="message-overlay" id="message-overlay" hidden>
+          <div class="message-card">
+            <span class="message-sparkle" aria-hidden="true">✦</span>
+            <p class="eyebrow" id="message-eyebrow">STAGE CLEAR!</p>
+            <h2 id="message-title">ゴール！</h2>
+            <p id="message-copy">冒険クリア！すごいね！</p>
+            <button class="primary-button" id="play-again" type="button">もう一度あそぶ <span aria-hidden="true">→</span></button>
+          </div>
+        </div>
+      </div>
+
+      <footer class="game-footer">
+        <p class="hint"><span class="hint-icon" aria-hidden="true">ⓘ</span> 敵にぶつからないように気をつけて！</p>
+        <div class="key-hints" aria-label="操作方法">
+          <span><kbd>←</kbd><kbd>→</kbd> または <kbd>A</kbd><kbd>D</kbd> 移動</span>
+          <span><kbd>Space</kbd> / <kbd>↑</kbd> ジャンプ</span>
+        </div>
+      </footer>
+    </section>
+
+    <nav class="touch-controls" aria-label="タッチ操作">
+      <button type="button" data-action="left" aria-label="左へ移動">←</button>
+      <button type="button" data-action="right" aria-label="右へ移動">→</button>
+      <button class="jump-button" type="button" data-action="jump" aria-label="ジャンプ">JUMP <span aria-hidden="true">↑</span></button>
+    </nav>
+    <p class="page-note">小さな一歩から、冒険がはじまる。</p>
+  </main>
 </body>
 </html>
