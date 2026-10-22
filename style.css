@@ -447,6 +447,12 @@ kbd {
     letter-spacing: 0.04em;
   }
 
+  .touch-controls .shoot-button {
+    background: #fff4d7;
+    color: #bd8423;
+    font-size: 18px;
+  }
+
   .jump-button span {
     font-size: 19px;
   }
