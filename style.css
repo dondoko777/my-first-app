@@ -57,6 +57,11 @@ button {
   margin-bottom: 24px;
 }
 
+.topbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .wordmark {
   gap: 10px;
   color: #223650;
@@ -83,7 +88,8 @@ button {
   font-weight: 500;
 }
 
-.restart-button {
+.restart-button,
+.sound-button {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -98,10 +104,22 @@ button {
   transition: border-color 160ms, color 160ms, transform 160ms;
 }
 
-.restart-button:hover {
+.restart-button:hover,
+.sound-button:hover:not(:disabled) {
   transform: translateY(-1px);
   border-color: #9cb8e7;
   color: #4778cc;
+}
+
+.sound-button[aria-pressed="true"] {
+  border-color: #b6c9f2;
+  background: #f2f6ff;
+  color: #4778cc;
+}
+
+.sound-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .restart-button span {
@@ -337,6 +355,17 @@ kbd {
   .wordmark-icon {
     width: 31px;
     height: 31px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .restart-button,
+  .sound-button {
+    gap: 5px;
+    padding: 8px 9px;
+    font-size: 10px;
   }
 
   .game-card {

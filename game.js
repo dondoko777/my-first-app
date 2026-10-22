@@ -6,6 +6,7 @@ const overlay = document.querySelector("#message-overlay");
 const messageEyebrow = document.querySelector("#message-eyebrow");
 const messageTitle = document.querySelector("#message-title");
 const messageCopy = document.querySelector("#message-copy");
+const soundToggle = document.querySelector("#sound-toggle");
 
 const VIEW_WIDTH = canvas.width;
 const VIEW_HEIGHT = canvas.height;
@@ -56,8 +57,52 @@ let previousTime = 0;
 let jumpPressed = false;
 let gameOver = false;
 let gameWon = false;
+let audioContext = null;
+let soundEnabled = false;
+let musicTimer = null;
+let musicNoteIndex = 0;
+
+const melody = [523.25, 659.25, 783.99, 659.25, 587.33, 698.46, 880, 698.46, 523.25, 659.25, 783.99, 1046.5, 880, 783.99, 659.25, 587.33];
 
 coinTotal.textContent = String(initialCoins.length);
+
+function playTone(frequency, duration, waveform = "sine", volume = 0.05, endFrequency = frequency, delay = 0) {
+  if (!soundEnabled || !audioContext) return;
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  const startTime = audioContext.currentTime + delay;
+  oscillator.type = waveform;
+  oscillator.frequency.setValueAtTime(frequency, startTime);
+  oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), startTime + duration);
+  gain.gain.setValueAtTime(0.0001, startTime);
+  gain.gain.exponentialRampToValueAtTime(volume, startTime + 0.015);
+  gain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
+  oscillator.connect(gain);
+  gain.connect(audioContext.destination);
+  oscillator.start(startTime);
+  oscillator.stop(startTime + duration);
+}
+
+function playMusicNote() {
+  playTone(melody[musicNoteIndex], 0.25, "sine", 0.022);
+  musicNoteIndex = (musicNoteIndex + 1) % melody.length;
+}
+
+function setSoundEnabled(enabled) {
+  soundEnabled = enabled;
+  soundToggle.setAttribute("aria-pressed", String(enabled));
+  soundToggle.setAttribute("aria-label", enabled ? "音をオフにする" : "音をオンにする");
+  soundToggle.textContent = enabled ? "♪ 音あり" : "♪ 音なし";
+  if (enabled) {
+    if (!audioContext) audioContext = new AudioContext();
+    if (audioContext.state === "suspended") audioContext.resume();
+    playMusicNote();
+    musicTimer = window.setInterval(playMusicNote, 300);
+  } else {
+    window.clearInterval(musicTimer);
+    musicTimer = null;
+  }
+}
 
 function resetGame() {
   player.x = 70;
@@ -81,6 +126,8 @@ function resetGame() {
 function showMessage(won) {
   gameWon = won;
   gameOver = !won;
+  const endingNotes = won ? [523.25, 659.25, 783.99, 1046.5] : [330, 247, 196];
+  endingNotes.forEach((note, index) => playTone(note, 0.24, "triangle", 0.06, note * 0.98, index * 0.14));
   messageEyebrow.textContent = won ? "STAGE CLEAR!" : "TRY AGAIN";
   messageTitle.textContent = won ? "ゴール！" : "ざんねん…";
   messageCopy.textContent = won
@@ -91,6 +138,7 @@ function showMessage(won) {
 
 function damagePlayer() {
   if (invulnerable > 0 || gameOver || gameWon) return;
+  playTone(220, 0.28, "sawtooth", 0.045, 95);
   lives -= 1;
   if (lives <= 0) {
     showMessage(false);
@@ -120,6 +168,7 @@ function update(delta) {
   if (jumpPressed && player.grounded) {
     player.vy = -JUMP_SPEED;
     player.grounded = false;
+    playTone(440, 0.16, "triangle", 0.045, 740);
   }
   jumpPressed = false;
 
@@ -154,6 +203,7 @@ function update(delta) {
       coin.taken = true;
       collected += 1;
       coinCount.textContent = String(collected);
+      playTone(880, 0.11, "sine", 0.05, 1174);
     }
   }
 
@@ -406,6 +456,11 @@ document.querySelectorAll("[data-action]").forEach((button) => {
 
 document.querySelector("#restart-button").addEventListener("click", resetGame);
 document.querySelector("#play-again").addEventListener("click", resetGame);
+soundToggle.addEventListener("click", () => setSoundEnabled(!soundEnabled));
+if (!window.AudioContext) {
+  soundToggle.disabled = true;
+  soundToggle.textContent = "音声に非対応";
+}
 
 resetGame();
 requestAnimationFrame(frame);

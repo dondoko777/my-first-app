@@ -9,6 +9,7 @@ This is a dependency-free, browser-based side-scrolling platform game:
 - `style.css` styles the page and provides responsive layout and touch-control presentation; it does not implement game behavior.
 
 Keep DOM selectors in `game.js` aligned with the IDs and attributes in `index.html`. Keep game geometry and drawing in canvas/world coordinates; page layout and responsive changes belong in CSS. The UI text is Japanese, with game-state messages set in `game.js` and the static interface text in `index.html`.
+Music and sound effects are synthesized with the Web Audio API in `game.js`; playback starts only after enabling sound with the `#sound-toggle` button.
 
 表示する説明や案内文は日本語にしてください。
 
