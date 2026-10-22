@@ -128,7 +128,7 @@ function showMessage(won) {
   gameOver = !won;
   const endingNotes = won ? [523.25, 659.25, 783.99, 1046.5] : [330, 247, 196];
   endingNotes.forEach((note, index) => playTone(note, 0.24, "triangle", 0.06, note * 0.98, index * 0.14));
-  messageEyebrow.textContent = won ? "STAGE CLEAR!" : "TRY AGAIN";
+  messageEyebrow.textContent = won ? "ステージクリア！" : "もう一度挑戦";
   messageTitle.textContent = won ? "ゴール！" : "ざんねん…";
   messageCopy.textContent = won
     ? `冒険クリア！コインを ${collected} 枚集めたよ。`
