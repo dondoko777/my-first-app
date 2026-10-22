@@ -48,6 +48,7 @@ const keys = new Set();
 const player = { x: 70, y: GROUND_Y - 48, width: 34, height: 44, vx: 0, vy: 0, grounded: true };
 let coins = [];
 let enemies = [];
+let bullets = [];
 let cameraX = 0;
 let collected = 0;
 let lives = 3;
@@ -55,6 +56,8 @@ let invulnerable = 0;
 let elapsed = 0;
 let previousTime = 0;
 let jumpPressed = false;
+let facing = 1;
+let shootCooldown = 0;
 let gameOver = false;
 let gameWon = false;
 let audioContext = null;
@@ -110,6 +113,9 @@ function resetGame() {
   player.vx = 0;
   player.vy = 0;
   player.grounded = true;
+  facing = 1;
+  shootCooldown = 0;
+  bullets = [];
   cameraX = 0;
   collected = 0;
   lives = 3;
@@ -152,6 +158,19 @@ function damagePlayer() {
   invulnerable = 1.5;
 }
 
+function shoot() {
+  if (gameOver || gameWon || shootCooldown > 0) return;
+  bullets.push({
+    x: facing > 0 ? player.x + player.width : player.x - 14,
+    y: player.y + 19,
+    width: 14,
+    height: 8,
+    vx: facing * 620,
+  });
+  shootCooldown = 0.22;
+  playTone(620, 0.08, "square", 0.035, 340);
+}
+
 function intersects(a, b) {
   return a.x < b.x + b.width && a.x + a.width > b.x
     && a.y < b.y + b.height && a.y + a.height > b.y;
@@ -161,10 +180,13 @@ function update(delta) {
   if (gameOver || gameWon) return;
   elapsed += delta;
   invulnerable = Math.max(0, invulnerable - delta);
+  shootCooldown = Math.max(0, shootCooldown - delta);
 
   const left = keys.has("ArrowLeft") || keys.has("a") || keys.has("A");
   const right = keys.has("ArrowRight") || keys.has("d") || keys.has("D");
   player.vx = (Number(right) - Number(left)) * MOVE_SPEED;
+  if (left && !right) facing = -1;
+  if (right && !left) facing = 1;
   if (jumpPressed && player.grounded) {
     player.vy = -JUMP_SPEED;
     player.grounded = false;
@@ -215,6 +237,26 @@ function update(delta) {
     }
     if (intersects(player, { x: enemy.x, y: GROUND_Y - 35, width: 34, height: 35 })) {
       damagePlayer();
+    }
+  }
+
+  for (let i = bullets.length - 1; i >= 0; i -= 1) {
+    const bullet = bullets[i];
+    bullet.x += bullet.vx * delta;
+    if (bullet.x + bullet.width < 0 || bullet.x > WORLD_WIDTH) {
+      bullets.splice(i, 1);
+      continue;
+    }
+    const enemyIndex = enemies.findIndex((enemy) => intersects(bullet, {
+      x: enemy.x,
+      y: GROUND_Y - 35,
+      width: 34,
+      height: 35,
+    }));
+    if (enemyIndex !== -1) {
+      enemies.splice(enemyIndex, 1);
+      bullets.splice(i, 1);
+      playTone(1046.5, 0.12, "triangle", 0.06, 698.46);
     }
   }
 
@@ -296,6 +338,7 @@ function drawWorld() {
 
   drawFlag();
   drawCoins();
+  drawBullets();
   drawEnemies();
   drawPlayer();
   ctx.restore();
@@ -338,6 +381,19 @@ function drawCoins() {
     ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
     ctx.beginPath();
     ctx.ellipse(coin.x - 2, coin.y - 3 + bob, 2, 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawBullets() {
+  for (const bullet of bullets) {
+    ctx.fillStyle = "rgba(255, 202, 91, 0.35)";
+    ctx.beginPath();
+    ctx.ellipse(bullet.x + bullet.width / 2 - Math.sign(bullet.vx) * 5, bullet.y + bullet.height / 2, bullet.width, bullet.height, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#fff0a6";
+    ctx.beginPath();
+    ctx.ellipse(bullet.x + bullet.width / 2, bullet.y + bullet.height / 2, bullet.width / 2, bullet.height / 2, 0, 0, Math.PI * 2);
     ctx.fill();
   }
 }
@@ -425,6 +481,7 @@ function frame(timestamp) {
 document.addEventListener("keydown", (event) => {
   const key = event.key;
   if (["ArrowLeft", "ArrowRight", "ArrowUp", " "].includes(key)) event.preventDefault();
+  if (key.toLowerCase() === "z" && !event.repeat) shoot();
   if ((key === " " || key === "ArrowUp" || key === "w" || key === "W") && !keys.has(key)) {
     jumpPressed = true;
   }
@@ -441,14 +498,17 @@ window.addEventListener("blur", () => {
 
 document.querySelectorAll("[data-action]").forEach((button) => {
   const action = button.dataset.action;
-  const key = action === "left" ? "ArrowLeft" : action === "right" ? "ArrowRight" : " ";
+  const key = action === "left" ? "ArrowLeft" : action === "right" ? "ArrowRight" : action === "jump" ? " " : null;
   button.addEventListener("pointerdown", (event) => {
     event.preventDefault();
     button.setPointerCapture(event.pointerId);
     if (action === "jump") jumpPressed = true;
-    else keys.add(key);
+    else if (action === "shoot") shoot();
+    else if (key) keys.add(key);
   });
-  const release = () => keys.delete(key);
+  const release = () => {
+    if (key) keys.delete(key);
+  };
   button.addEventListener("pointerup", release);
   button.addEventListener("pointercancel", release);
   button.addEventListener("lostpointercapture", release);

@@ -10,6 +10,7 @@ This is a dependency-free, browser-based side-scrolling platform game:
 
 Keep DOM selectors in `game.js` aligned with the IDs and attributes in `index.html`. Keep game geometry and drawing in canvas/world coordinates; page layout and responsive changes belong in CSS. The UI text is Japanese, with game-state messages set in `game.js` and the static interface text in `index.html`.
 Music and sound effects are synthesized with the Web Audio API in `game.js`; playback starts only after enabling sound with the `#sound-toggle` button.
+Player controls are wired from keyboard events and the mobile `data-action` buttons in `index.html`; keep both input paths consistent when adding actions. `Z` and the touch fire button shoot projectiles, which are updated and checked against enemies in the game loop.
 
 表示する説明や案内文は日本語にしてください。
 
